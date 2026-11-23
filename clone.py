@@ -47,13 +47,24 @@ def resolve_voice_files(voice, reference_override, text_override):
 
 
 def main():
+    vdir = os.path.join(REPO_DIR, 'voices')
+    default_voice = '三師爸'
+    if os.path.exists(vdir):
+        available = [
+            d for d in os.listdir(vdir)
+            if os.path.isdir(os.path.join(vdir, d))
+            and os.path.exists(os.path.join(vdir, d, 'ref_voice.wav'))
+        ]
+        if available:
+            default_voice = available[0]
+
     parser = argparse.ArgumentParser(description='VoxCPM2 Ultimate Cloning 語音生成')
     parser.add_argument('text', nargs='?', help='要生成的文字')
     parser.add_argument('--file', '-f', help='從文字檔讀取要生成的內容')
     parser.add_argument('--output', '-o', default='output/cloned_voice.wav',
                         help='輸出檔案路徑（預設: output/cloned_voice.wav）')
-    parser.add_argument('--voice', '-v', default='三師爸',
-                        help='聲音名稱，對應 voices/ 目錄（預設: 三師爸）')
+    parser.add_argument('--voice', '-v', default=default_voice,
+                        help=f'聲音名稱，對應 voices/ 目錄（預設: {default_voice}）')
     parser.add_argument('--reference', '-r',
                         help='覆蓋參考音檔路徑（預設由 --voice 決定）')
     parser.add_argument('--text-file', '-t',

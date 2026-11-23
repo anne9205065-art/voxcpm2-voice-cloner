@@ -40,7 +40,7 @@ def load_sample_text():
     return ""
 
 
-def on_save(audio_mic, audio_upload, voice_name):
+def on_save(audio_mic, audio_upload, voice_name, custom_prompt=""):
     audio_data = audio_mic or audio_upload
     if audio_data is None:
         return "⚠️ 請先按「開始錄音」錄下你的聲音。"
@@ -65,8 +65,10 @@ def on_save(audio_mic, audio_upload, voice_name):
         os.makedirs(vdir, exist_ok=True)
         import soundfile as sf
         sf.write(os.path.join(vdir, "ref_voice.wav"), audio.astype(np.float32), SAMPLE_RATE)
+        
+        prompt_content = custom_prompt.strip() if (custom_prompt and custom_prompt.strip()) else load_sample_text()
         with open(os.path.join(vdir, "prompt.txt"), "w", encoding="utf-8") as f:
-            f.write(load_sample_text())
+            f.write(prompt_content)
 
         duration = len(audio) / SAMPLE_RATE
         existing = list_voices()
@@ -119,12 +121,17 @@ def build_ui():
 
             with gr.Accordion("或上傳已錄好的音檔", open=False):
                 audio_upload = gr.Audio(label="", type="numpy", sources=["upload"], show_label=False)
+                custom_prompt_input = gr.Textbox(
+                    label="音檔逐字稿（若留空則預設使用上方文字）",
+                    placeholder="若上傳自己的音檔，請在此輸入該音檔朗讀的文字內容...",
+                    lines=2,
+                )
 
         save_msg = gr.Textbox(label="", show_label=False, lines=5, interactive=False)
 
         save_btn.click(
             fn=on_save,
-            inputs=[audio_mic, audio_upload, voice_name_input],
+            inputs=[audio_mic, audio_upload, voice_name_input, custom_prompt_input],
             outputs=[save_msg],
         )
 
